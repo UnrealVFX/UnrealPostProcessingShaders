@@ -1,0 +1,21 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\bernardo\\documents\\unreal projects\\tcc-demo\\plugins\\ppfree\\source\\ppfree\\private\\ppfree.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\users\\bernardo\\documents\\unreal projects\\tcc-demo\\intermediate\\build\\win64\\demoeditor\\development\\engine\\sharedpch.engine.shadowerrors.inclorderunreal5_0.h.pch",
+        "Includes": [
+            "c:\\users\\bernardo\\documents\\unreal projects\\tcc-demo\\plugins\\ppfree\\intermediate\\build\\win64\\unrealeditor\\development\\ppfree\\definitions.ppfree.h",
+            "c:\\users\\bernardo\\documents\\unreal projects\\tcc-demo\\plugins\\ppfree\\source\\ppfree\\public\\ppfree.h",
+            "d:\\ue_5.1\\engine\\source\\runtime\\projects\\public\\interfaces\\ipluginmanager.h",
+            "d:\\ue_5.1\\engine\\source\\runtime\\projects\\public\\plugindescriptor.h",
+            "d:\\ue_5.1\\engine\\source\\runtime\\projects\\public\\custombuildsteps.h",
+            "d:\\ue_5.1\\engine\\source\\runtime\\projects\\public\\localizationdescriptor.h",
+            "d:\\ue_5.1\\engine\\source\\runtime\\projects\\public\\moduledescriptor.h",
+            "d:\\ue_5.1\\engine\\source\\runtime\\projects\\public\\pluginreferencedescriptor.h",
+            "d:\\ue_5.1\\engine\\source\\runtime\\projects\\public\\versescope.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

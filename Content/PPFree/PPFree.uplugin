@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "PPFree",
+	"Description": "Free HLSL Post Processing effects",
+	"Category": "Other",
+	"CreatedBy": "Bruno Mariz, Bernardo Countinho, Vinicus Ariel",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "PPFree",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

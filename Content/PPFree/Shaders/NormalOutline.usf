@@ -1,0 +1,32 @@
+// INPUTS:
+// UV: Texture coordinate of the rendered scene image
+// InvSize: a float2 that represents 1/Size of the scene (this value will change depending on the window size)
+// LineThickness: Thickness of the outline
+// OutlineColor: Color of the outline
+// SceneTexture: color of each pixel of the Scene
+
+// OBS: InvSize is 1/ImageSize
+
+float3 NormalOutlineFunc(float2 UV, float InvSize, float LineThickness, float3 OutlineColor, float3 SceneTexture)
+{
+    float2 right_pixel_position = UV + (float2(1.0, 0.0) * InvSize * LineThickness);
+    float2 left_pixel_position = UV + (float2(-1.0, 0.0) * InvSize * LineThickness);
+    float2 up_pixel_position = UV + (float2(0.0, -1.0) * InvSize * LineThickness);
+    float2 down_pixel_position = UV + (float2(0.0, 1.0) * InvSize * LineThickness);
+
+    float3 right_pixel_normal = SceneTextureLookup(right_pixel_position, 8, false);
+    float3 left_pixel_normal = SceneTextureLookup(left_pixel_position, 8, false);
+    float3 up_pixel_normal = SceneTextureLookup(up_pixel_position, 8, false);
+    float3 down_pixel_normal = SceneTextureLookup(down_pixel_position, 8, false);
+
+    float3 horizontal_subtraction = abs(right_pixel_normal - left_pixel_normal);
+    float3 vertical_subtraction = abs(up_pixel_normal - down_pixel_normal);
+
+    float3 normal_sum = horizontal_subtraction + vertical_subtraction;
+
+    float max_normal_sum = max(normal_sum[0], max(normal_sum[1], normal_sum[2]));
+
+    float3 alpha = smoothstep(0.2, 0.7, max_normal_sum);
+
+    return lerp(SceneTexture, OutlineColor, alpha);
+}

@@ -1,0 +1,137 @@
+// INPUTS:
+// SceneTexture: Not explicity used in code, but necessary for the SceneTextureLookup function from Unreal's Material Compiler (check MaterialCompiler.h in Runtime Module)
+// UV: Texture coordinate of the rendered scene image
+// Radius: the radius of the circle
+// ViewSize: the size of the viewport
+
+float3 KuwaharaSimpleCircleFunc(float4 SceneTexture, float2 UV, float Radius, float2 ViewSize)
+{
+    // These values will store the sum of the color (R, G, B) of the pixels in the Top-Left, Bottom-Left, Top-Right and Bottom-Right quadrants, respectively
+    float3 sum_color_tl = {0, 0, 0};
+    float3 sum_color_bl = {0, 0, 0};
+    float3 sum_color_tr = {0, 0, 0};
+    float3 sum_color_br = {0, 0, 0};
+
+    // These values will store the sum of the color squared of the pixels in each quadrant
+    // We'll use this later to calculate the variance and the standard deviation
+    float3 sum_color_sqrd_tl = {0, 0, 0};
+    float3 sum_color_sqrd_bl = {0, 0, 0};
+    float3 sum_color_sqrd_tr = {0, 0, 0};
+    float3 sum_color_sqrd_br = {0, 0, 0};
+
+    // These values will store the mean color of each quadrant
+    float3 mean_color_tl;
+    float3 mean_color_bl;
+    float3 mean_color_tr;
+    float3 mean_color_br;
+
+    // These values will store the variance of each quadrant
+    float3 variance_tl;
+    float3 variance_bl;
+    float3 variance_tr;
+    float3 variance_br;
+
+    // Number of pixels in a quadrant
+    // Will calculated dynamically, as this number may change dependin on the chosen radius
+    float n_pixels = 0;
+
+    // The final value calculated: the color of this pixel!
+    float3 return_color;
+
+    // Calculate Top-Left mean color and standard deviation
+
+    // iterates from {0,0} to {Radius, Radius} in a quadrant
+    for(int i = 0; i <= Radius; i++)
+    {
+        for(int j = 0; j <= Radius; j++)
+        {
+            float2 pixel_position = float2(i,j) + float2(-Radius, -Radius); 	// offsets to Top-Left
+            float2 position_uv = UV + pixel_position/ViewSize;			// divides by ViewSize so we can adjust to the user's window/screen size
+            if(length(UV - position_uv) <= Radius)
+            {
+                float3 color = SceneTextureLookup(position_uv, 14, false);	// samples color from this UV coordinate in Post-Process scene texture (which has id = 14)
+                sum_color_tl += color;
+                sum_color_sqrd_tl += color * color;
+                n_pixels++;									// we'll only calculate this once!
+            }
+        }
+    }
+
+    mean_color_tl = sum_color_tl / n_pixels;
+    variance_tl = (sum_color_sqrd_tl / n_pixels) - (mean_color_tl * mean_color_tl);
+
+    // Calculate Bottom-Left mean color and standard deviation
+    for(int i = 0; i <= Radius; i++)
+    {
+        for(int j = 0; j <= Radius; j++)
+        {
+            float2 pixel_position = float2(i,j) + float2(-Radius, 0); 	// offsets to Bottom_Left
+            float2 position_uv = UV + pixel_position/ViewSize;
+            if(length(UV - position_uv) <= Radius)
+            {
+                float3 color = SceneTextureLookup(position_uv, 14, false);
+                sum_color_bl += color;
+                sum_color_sqrd_bl += color * color;
+            }
+        }
+    }
+
+    mean_color_bl = sum_color_bl / n_pixels;
+    variance_bl = (sum_color_sqrd_bl / n_pixels) - (mean_color_bl * mean_color_bl);
+
+    // Calculate Top-Right mean color and standard deviation
+    for(int i = 0; i <= Radius; i++)
+    {
+        for(int j = 0; j <= Radius; j++)
+        {
+            float2 pixel_position = float2(i,j) + float2(0, -Radius); 	// offsets to Top-Right
+            float2 position_uv = UV + pixel_position/ViewSize;
+            if(length(UV - position_uv) <= Radius)
+            {
+                float3 color = SceneTextureLookup(position_uv, 14, false);
+                sum_color_tr += color;
+                sum_color_sqrd_tr += color * color;
+            }
+        }
+    }
+
+    mean_color_tr = sum_color_tr / n_pixels;
+    variance_tr = (sum_color_sqrd_tr / n_pixels) - (mean_color_tr * mean_color_tr);
+
+    // Calculate Bottom-Right mean color and standard deviation
+    for(int i = 0; i <= Radius; i++)
+    {
+        for(int j = 0; j <= Radius; j++)
+        {
+            float2 pixel_position = float2(i,j) + float2(0, 0); 	// 'offsets' to Bottom-Right
+            float2 position_uv = UV + pixel_position/ViewSize;
+            if(length(UV - position_uv) <= Radius)
+            {
+                float3 color = SceneTextureLookup(position_uv, 14, false);
+                sum_color_br += color;
+                sum_color_sqrd_br += color * color;
+            }
+        }
+    }
+
+    mean_color_br = sum_color_br / n_pixels;
+    variance_br = (sum_color_sqrd_br / n_pixels) - (mean_color_br * mean_color_br);
+
+    // Now that we have all standard deviations and mean colors, we choose the mean color of the quadrant which the lowest variance
+    float3 means[4] = {mean_color_tl, mean_color_bl, mean_color_tr, mean_color_br};
+    float3 variances[4] = {variance_tl, variance_bl, variance_tr, variance_br};
+
+    float min = 3;	//will store the min value the sum of all RGB channels of variance. Starts off with the max value possible (i.e white = {1, 1, 1})
+
+    for(int i = 0; i < 4; i++)
+    {
+        float variance_channels_sum = variances[i].r + variances[i].g + variances[i].b;
+        if(variance_channels_sum < min)
+        {
+            min = variance_channels_sum;
+            return_color = means[i];
+        }
+    }
+
+    return return_color;
+}

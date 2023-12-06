@@ -1,0 +1,37 @@
+// INPUTS:
+// SceneTexture: color of each pixel of the Scene
+// UV: Texture coordinate of the rendered scene image
+// InvSize: a float2 that represents 1/Size of the scene (this value will change depending on the window size)
+// LineThickness: Thickness of the outline
+
+// OBS: InvSize is 1/ImageSize
+
+float3 DistanceOutlineFunc(float4 SceneTexture, float2 UV, float InvSize, float LineThickness)
+{
+    float3 original_color = SceneTextureLookup(UV, 1, false);
+
+    float clamped_depth = clamp(original_color[0], 100, 600);
+
+    float perc = (clamped_depth - 100) / (1000 - 100);
+    float ranged_depth = perc * (2 - 8) + 8;
+
+    float2 right_pixel_position = UV + (float2(1.0, 0.0) * InvSize * LineThickness);
+    float2 left_pixel_position = UV + (float2(-1.0, 0.0) * InvSize * LineThickness);
+    float2 up_pixel_position = UV + (float2(0.0, -1.0) * InvSize * LineThickness);
+    float2 down_pixel_position = UV + (float2(0.0, 1.0) * InvSize * LineThickness);
+
+    float3 right_pixel_color = SceneTextureLookup(right_pixel_position, 1, false);
+    float3 left_pixel_color = SceneTextureLookup(left_pixel_position, 1, false);
+    float3 up_pixel_color = SceneTextureLookup(up_pixel_position, 1, false);
+    float3 down_pixel_color = SceneTextureLookup(down_pixel_position, 1, false);
+
+    float3 subtract_color_right = original_color - right_pixel_color;
+    float3 subtract_color_left = original_color - left_pixel_color;
+    float3 subtract_color_up = original_color - up_pixel_color;
+    float3 subtract_color_down = original_color - down_pixel_color;
+
+    if(subtract_color_right[0] + subtract_color_left[0] + subtract_color_up[0] + subtract_color_down[0] > 25.0)
+        return float(1.0);
+
+    return float(0.0);
+}

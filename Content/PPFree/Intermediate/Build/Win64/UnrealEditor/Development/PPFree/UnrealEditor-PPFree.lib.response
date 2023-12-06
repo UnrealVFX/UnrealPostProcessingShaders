@@ -1,0 +1,12 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-PPFree.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"C:\Users\Bernardo\Documents\Unreal Projects\TCC-Demo\Intermediate\Build\Win64\DemoEditor\Development\Engine\SharedPCH.Engine.ShadowErrors.InclOrderUnreal5_0.h.obj"
+"C:\Users\Bernardo\Documents\Unreal Projects\TCC-Demo\Plugins\PPFree\Intermediate\Build\Win64\UnrealEditor\Development\PPFree\PPFree.cpp.obj"
+"C:\Users\Bernardo\Documents\Unreal Projects\TCC-Demo\Plugins\PPFree\Intermediate\Build\Win64\UnrealEditor\Development\PPFree\Default.rc2.res"
+/OUT:"C:\Users\Bernardo\Documents\Unreal Projects\TCC-Demo\Plugins\PPFree\Intermediate\Build\Win64\UnrealEditor\Development\PPFree\UnrealEditor-PPFree.lib"

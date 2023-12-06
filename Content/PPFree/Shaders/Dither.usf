@@ -1,0 +1,35 @@
+// INPUTS:
+// UV: Texture coordinate of the rendered scene image
+// ViewSize: Float2 resolution of game in pixels
+// PixelPosition: Current Pixel Position
+// SceneTexture: Not explicity used in code, but necessary for the SceneTextureLookup function from Unreal's Material Compiler (check MaterialCompiler.h in Runtime Module)
+
+float3 DitherFunc(float2 UV, float2 ViewSize, float2 PixelPosition, Texture2D Tex, SamplerState TexSampler, float DitherSize, int bit_depth)
+{
+    static const int SceneTextureId = 14;
+
+    float2 Resolution = ViewSize / DitherSize;
+    float2 PixelPositionDither = PixelPosition / DitherSize;
+    float2 PixelPositionDitherFloor = floor(PixelPositionDither);
+    float2 SceneUVFloor = UV * PixelPositionDitherFloor / PixelPositionDither;
+    UV = floor(UV * Resolution) / Resolution;
+
+    // Luminosity of Scene Pixel
+    float3 PixelColor = SceneTextureLookup(SceneUVFloor, SceneTextureId, 0).rgb;
+
+    // Bayer pattern
+    float2 TextureDim;
+    Tex.GetDimensions(TextureDim.x, TextureDim.y);
+    float2 PatternUV = int2(UV * Resolution) / TextureDim;
+    float2 PixelUV = PixelPositionDitherFloor / TextureDim;
+    float threshold = Texture2DSample(Tex, TexSampler, PixelUV).r;
+
+    float threshold_ratioed = (threshold- 0.5) / 5.0;
+
+    float3 PixelColorSum = PixelColor  + threshold_ratioed;
+    float3 PixelColorDepth =  floor(PixelColorSum * float(bit_depth) + 0.5) / float(bit_depth);
+
+    float3 result = PixelColorDepth;
+
+    return result;
+}

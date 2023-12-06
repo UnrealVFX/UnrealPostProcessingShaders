@@ -1,0 +1,21 @@
+// INPUTS:
+// UV: Texture coordinate of the rendered scene image
+// ViewSize: Float2 resolution of game in pixels
+// PixelPosition: Current Pixel Position
+// PixelSize: Desired final pixelate size in pixels
+// SceneTexture: Not explicity used in code, but necessary for the SceneTextureLookup function from Unreal's Material Compiler (check MaterialCompiler.h in Runtime Module)
+
+float3 PixelateFunc(float2 UV, float2 ViewSize, float2 PixelPosition, float PixelSize)
+{
+    static const int SceneTextureId = 14;
+
+    float2 Resolution = ViewSize / PixelSize;
+    float2 PixelatePosition = PixelPosition / PixelSize;
+    float2 PixelatePositionFloor = floor(PixelatePosition);
+    float2 SceneUVFloor = UV * PixelatePositionFloor / PixelatePosition;
+
+    // Luminosity of Scene Pixel
+    float3 PixelColor = SceneTextureLookup(SceneUVFloor, SceneTextureId, 0).rgb;
+
+    return PixelColor;
+}

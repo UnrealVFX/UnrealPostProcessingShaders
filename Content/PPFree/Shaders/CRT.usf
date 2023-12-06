@@ -1,0 +1,85 @@
+// INPUTS:
+// UV: Texture coordinate of the rendered scene image
+// SceneTexture: Not explicity used in code, but necessary for the SceneTextureLookup function from Unreal's Material Compiler (check MaterialCompiler.h in Runtime Module)
+
+float3 CRTFunc(float2 UV, float2 ViewSize, float2 PixelPosition, float curvature,
+                    float rFrequency, float rPhase, float rAmplitude, float rDisplacement,
+                    float gFrequency, float gPhase, float gAmplitude, float gDisplacement,
+                    float bFrequency, float bPhase, float bAmplitude, float bDisplacement
+                    )
+{
+    #define PI 3.1415926
+    #define SCREEN_WIDTH ViewSize.x
+    #define SCREEN_HEIGHT ViewSize.y
+
+    static const int SceneTextureId = 14;
+
+    // Distortion
+    // float curvature = 5;
+    // float2 UV_scaled = UV * 2 - 1;
+    // float2 Offset = UV_scaled / curvature;
+    // float2 Offset2 = Offset * Offset;
+    // float2 UV_distorted_scaled = UV_scaled + UV_scaled * Offset2;
+    // float2 UV_distorted = UV_distorted_scaled * 0.5 + 0.5; 
+    float2 UV_distorted = (UV - 0.5) * 2.0; // UV_distorted is now -1 to 1
+    UV_distorted = curvature*UV_distorted/sqrt(curvature*curvature -dot(UV_distorted, UV_distorted));
+    UV_distorted = (UV_distorted / 2.0) + 0.5; // back to 0-1 coords
+
+
+    // Vignette
+    // float2 UV_vignette = UV_distorted; 
+    // UV_vignette *= 1- UV_vignette.yx;
+    // float vignette = UV_vignette.x * UV_vignette.y * 15;
+    // vignette = pow(vignette, 0.25);
+    float2 UV_vignette = (UV - 0.5) * 2.0; // UV_vignette is now -1 to 1
+    UV_vignette = curvature*UV_vignette/sqrt(curvature*curvature -dot(UV_vignette, UV_vignette));
+    UV_vignette = 1 - abs(UV_vignette);
+    float2 vignette = smoothstep(0, float2(0.1*SCREEN_WIDTH/SCREEN_WIDTH, 0.1*SCREEN_HEIGHT/SCREEN_HEIGHT), UV_vignette);
+    vignette = vignette.x * vignette.y;
+    vignette = pow(vignette, 5);
+
+
+    // Sample pixel color
+    // Side by side comparison
+    if (PixelPosition.x > SCREEN_WIDTH/2) {
+    float3 PixelColor = SceneTextureLookup(UV, SceneTextureId, 0).rgb;
+    // return PixelColor;
+    }
+    float3 PixelColor = SceneTextureLookup(UV_distorted, SceneTextureId, 0).rgb;
+    // float3 PixelColor = float3(length(vignette), length(vignette), length(vignette));
+    // float3 PixelColor = float3(vignette.x, vignette.x, vignette.x);
+
+    // Black out areas where UV < 0
+    if (UV_distorted.x > 1 || UV_distorted.y > 1 || UV_distorted.x < 0 || UV_distorted.y < 0) {
+    PixelColor = float3(0,0,0);
+    }
+
+
+    // Scan Lines
+    // float rFrequency = 2;
+    // float rPhase = PI/2;
+    // float rAmplitude = 0.15;
+    // float rDisplacement = 1.15;
+
+    // float gFrequency = 2;
+    // float gPhase = 0;
+    // float gAmplitude = 0.1;
+    // float gDisplacement = 1.1;
+
+    // float bFrequency = 2;
+    // float bPhase = PI/2;
+    // float bAmplitude = 0.15;
+    // float bDisplacement = 1.15;
+
+    float ScreenHeight = ViewSize.y;
+
+    PixelColor = float3((rDisplacement + rAmplitude*sin(UV.y*ScreenHeight*rFrequency + rPhase))*PixelColor.r, 
+                (gDisplacement + gAmplitude*sin(UV.y*ScreenHeight*gFrequency + gPhase))*PixelColor.g, 
+                (bDisplacement + bAmplitude*sin(UV.y*ScreenHeight*bFrequency + bPhase))*PixelColor.b);
+
+    // Apply vignette
+    PixelColor  = PixelColor * float3(vignette.x,vignette.x,vignette.x);
+
+    return PixelColor;
+}
+
