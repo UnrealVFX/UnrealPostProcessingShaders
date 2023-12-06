@@ -39,6 +39,7 @@ public class PPFree : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"Project",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
